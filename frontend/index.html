@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Campus Lost and Found Board</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; background: #f4f4f9; }
+        h1 { color: #333; }
+        .card { background: white; padding: 15px; margin-bottom: 10px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        footer { margin-top: 30px; font-size: 0.8em; color: #666; }
+    </style>
+</head>
+<body>
+    <h1>Campus Lost & Found Board</h1>
+    <div id="items">Loading items...</div>
+
+    <footer>
+        <p>Deployment Version: <strong id="build-tag">Build 1 (Initial Deployment)</strong></p>
+    </footer>
+
+    <script>
+        fetch('/api/items/')
+            .then(res => res.json())
+            .then(data => {
+                const container = document.getElementById('items');
+                container.innerHTML = '';
+                data.forEach(item => {
+                    container.innerHTML += `
+                        <div class="card">
+                            <h3>[${item.category}] ${item.title}</h3>
+                            <p>${item.description}</p>
+                            <small>Location: ${item.location} | Status: ${item.status}</small>
+                        </div>
+                    `;
+                });
+            })
+            .catch(err => {
+                document.getElementById('items').innerText = 'Error loading items.';
+            });
+    </script>
+</body>
+</html>

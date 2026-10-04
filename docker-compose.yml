@@ -1,0 +1,55 @@
+services:
+  proxy:
+    build: ./proxy
+    image: lostfound/proxy:${TAG:-latest}
+    ports:
+      - "8080:80"
+    depends_on:
+      - frontend
+      - items-api
+    restart: unless-stopped
+    networks:
+      - app-net
+
+  frontend:
+    build: ./frontend
+    image: lostfound/frontend:${TAG:-latest}
+    restart: unless-stopped
+    networks:
+      - app-net
+
+  items-api:
+    build:
+      context: ./items-api
+      target: production
+    image: lostfound/items-api:${TAG:-latest}
+    environment:
+      DB_HOST: db
+      DB_NAME: lostfound
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - app-net
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: lostfound
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}     volumes:       - pg-data:/var/lib/postgresql/data       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql     healthcheck:       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d lostfound"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - app-net
+
+volumes:
+  pg-data:
+
+networks:
+  app-net:
